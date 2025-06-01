@@ -167,8 +167,8 @@ kafka-topics.sh --list --bootstrap-server slave1:9092,slave2:9092,slave3:9092
 
 只在master机器上 ：   
 1、./node_exporter &  所有机器上执行  进入到node文件夹底下  
-2、./prometheus --config.file=prometheus.yml &  prometheus文件夹里面  
-3、grafana-server web & 进入grafana bin里面
+2、./prometheus --config.file=prometheus.yml &  prometheus文件夹里面  只在master机器上
+3、grafana-server web & 进入grafana bin里面  只在master机器上
 
 浏览器访问http://192.168.56.10:3000 admin 111111
 
