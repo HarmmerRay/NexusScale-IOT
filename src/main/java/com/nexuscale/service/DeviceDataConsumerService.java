@@ -3,6 +3,8 @@ package com.nexuscale.service;
 import com.nexuscale.config.ConfigManager;
 import com.nexuscale.consumer.RedisConsumer;
 import com.nexuscale.database.DatabaseManager;
+import com.nexuscale.hbase.HBaseManager;
+import com.nexuscale.kafka.KafkaProducerManager;
 import com.nexuscale.redis.RedisManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +20,9 @@ public class DeviceDataConsumerService {
     
     private final DatabaseManager databaseManager;
     private final RedisManager redisManager;
+    private final HBaseManager hbaseManager;
+    private final KafkaProducerManager kafkaProducer;
+    private final SensorDataGeneratorService sensorDataGenerator;
     private final ExecutorService executorService;
     private final ConcurrentHashMap<String, RedisConsumer> consumers = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Future<?>> consumerTasks = new ConcurrentHashMap<>();
@@ -25,6 +30,9 @@ public class DeviceDataConsumerService {
     public DeviceDataConsumerService() {
         this.databaseManager = new DatabaseManager();
         this.redisManager = new RedisManager();
+        this.hbaseManager = new HBaseManager();
+        this.kafkaProducer = new KafkaProducerManager();
+        this.sensorDataGenerator = new SensorDataGeneratorService(databaseManager, hbaseManager, kafkaProducer);
         
         int threadCount = ConfigManager.getIntProperty("app.consumer.threads", 10);
         this.executorService = Executors.newFixedThreadPool(threadCount);
@@ -70,6 +78,18 @@ public class DeviceDataConsumerService {
             return false;
         }
         
+        logger.info("Testing HBase connection...");
+        if (!hbaseManager.testConnection()) {
+            logger.error("HBase connection failed");
+            return false;
+        }
+        
+        logger.info("Testing Kafka connection...");
+        if (!kafkaProducer.testConnection()) {
+            logger.error("Kafka connection failed");
+            return false;
+        }
+        
         logger.info("All connection tests passed");
         return true;
     }
@@ -81,6 +101,7 @@ public class DeviceDataConsumerService {
         }
         
         RedisConsumer consumer = new RedisConsumer(topic, redisManager);
+        consumer.setSensorDataGenerator(sensorDataGenerator);
         consumers.put(topic, consumer);
         
         Future<?> task = executorService.submit(consumer);
@@ -140,11 +161,16 @@ public class DeviceDataConsumerService {
             task.cancel(true);
         }
         
+        // Shutdown services
+        sensorDataGenerator.shutdown();
+        
         // Shutdown executor service
         executorService.shutdown();
         
-        // Close Redis connections
+        // Close connections
         redisManager.close();
+        hbaseManager.close();
+        kafkaProducer.close();
         
         logger.info("Device Data Consumer Service shut down completed");
     }

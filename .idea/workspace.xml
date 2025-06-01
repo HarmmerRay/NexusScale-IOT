@@ -5,11 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a47b6785-effb-4215-83dc-7dc2cb378bde" name="Changes" comment="#[2025.4.2] Kafka生产者，发送mqtt数据到Kafka集群中">
-      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/nexuscale/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/nexuscale/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/nexuscale/util/KafkaProducerExample.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/nexuscale/consumer/RedisConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/nexuscale/consumer/RedisConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/nexuscale/service/DeviceDataConsumerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/nexuscale/service/DeviceDataConsumerService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,6 +41,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.HBaseTestProgram.executor": "Run",
     "Application.KafkaProducerExample.executor": "Run",
     "Application.Main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -64,7 +67,20 @@
     ]
   }
 }]]></component>
-  <component name="RunManager" selected="Application.Main">
+  <component name="RunManager" selected="Application.HBaseTestProgram">
+    <configuration name="HBaseTestProgram" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.nexuscale.test.HBaseTestProgram" />
+      <module name="NexusScale-IOT" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.nexuscale.test.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="KafkaProducerExample" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.nexuscale.util.KafkaProducerExample" />
       <module name="NexusScale-IOT" />
@@ -93,6 +109,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.HBaseTestProgram" />
         <item itemvalue="Application.Main" />
         <item itemvalue="Application.KafkaProducerExample" />
       </list>
@@ -118,7 +135,8 @@
       <workItem from="1743658159640" duration="641000" />
       <workItem from="1744469277237" duration="1015000" />
       <workItem from="1744881159804" duration="5705000" />
-      <workItem from="1748682848333" duration="414000" />
+      <workItem from="1748682848333" duration="3193000" />
+      <workItem from="1748698651194" duration="239000" />
     </task>
     <task id="LOCAL-00001" summary="#[2025.4.2] Kafka生产者，发送mqtt数据到Kafka集群中">
       <option name="closed" value="true" />

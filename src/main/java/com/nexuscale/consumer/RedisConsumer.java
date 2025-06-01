@@ -1,7 +1,10 @@
 package com.nexuscale.consumer;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexuscale.config.ConfigManager;
 import com.nexuscale.redis.RedisManager;
+import com.nexuscale.service.SensorDataGeneratorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -19,11 +22,18 @@ public class RedisConsumer implements Runnable {
     private final RedisManager redisManager;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final long pollingInterval;
+    private final ObjectMapper objectMapper;
+    private SensorDataGeneratorService sensorDataGenerator;
     
     public RedisConsumer(String topic, RedisManager redisManager) {
         this.topic = topic;
         this.redisManager = redisManager;
         this.pollingInterval = ConfigManager.getIntProperty("app.polling.interval", 1000);
+        this.objectMapper = new ObjectMapper();
+    }
+    
+    public void setSensorDataGenerator(SensorDataGeneratorService sensorDataGenerator) {
+        this.sensorDataGenerator = sensorDataGenerator;
     }
     
     @Override
@@ -63,8 +73,31 @@ public class RedisConsumer implements Runnable {
         String timestamp = LocalDateTime.now().format(FORMATTER);
         logger.info("[{}] Topic: {} | Data: {}", timestamp, topic, data);
         
-        // Here you can add additional processing logic for the consumed data
-        // For example, data validation, transformation, or sending to other systems
+        // 处理设备状态消息
+        try {
+            JsonNode jsonNode = objectMapper.readTree(data);
+            
+            // 检查是否为设备状态消息
+            if (jsonNode.has("deviceId") && jsonNode.has("state")) {
+                String deviceId = jsonNode.get("deviceId").asText();
+                int state = jsonNode.get("state").asInt();
+                
+                logger.info("Received device state message: deviceId={}, state={}", deviceId, state);
+                
+                // 如果设备状态为1（开启）且有传感器数据生成器，则开始生成数据
+                if (sensorDataGenerator != null) {
+                    sensorDataGenerator.startDataGeneration(deviceId, state);
+                } else {
+                    logger.warn("SensorDataGenerator not available for processing device state");
+                }
+            } else {
+                // 处理其他类型的消息
+                logger.info("Received general message on topic {}: {}", topic, data);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error processing message: {}", data, e);
+        }
     }
     
     public void stop() {
