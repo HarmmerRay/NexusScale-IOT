@@ -97,14 +97,14 @@ public class SensorDataGeneratorService {
     }
     
     private void scheduleDataGeneration(DeviceInfo deviceInfo) {
-        // 每10秒生成一次数据
+        // 每1分钟生成一次数据
         ScheduledFuture<?> future = executorService.scheduleAtFixedRate(() -> {
             try {
                 generateAndStoreSensorData(deviceInfo);
             } catch (Exception e) {
                 logger.error("Error generating sensor data for device {}", deviceInfo.deviceId, e);
             }
-        }, 0, 10, TimeUnit.SECONDS);
+        }, 0, 1, TimeUnit.MINUTES);
         
         // 将任务保存到映射中，以便后续可以取消
         deviceTasks.put(deviceInfo.deviceId, future);
