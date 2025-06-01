@@ -49,6 +49,10 @@ public class DeviceDataConsumerService {
             return;
         }
         
+        // 初始化所有状态为1的活跃设备
+        logger.info("Initializing active devices from database...");
+        sensorDataGenerator.initializeActiveDevices();
+        
         // Get device types from database
         List<String> deviceTypes = databaseManager.getDeviceTypes();
         
@@ -63,6 +67,7 @@ public class DeviceDataConsumerService {
         }
         
         logger.info("All consumers started successfully. Total consumers: {}", consumers.size());
+        logger.info("Active devices initialized: {}", sensorDataGenerator.getActiveDeviceCount());
     }
     
     private boolean testConnections() {

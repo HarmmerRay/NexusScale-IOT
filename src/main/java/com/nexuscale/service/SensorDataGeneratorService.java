@@ -15,8 +15,10 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class SensorDataGeneratorService {
@@ -29,6 +31,9 @@ public class SensorDataGeneratorService {
     private final Random random;
     private final ScheduledExecutorService executorService;
     
+    // 跟踪每个设备的数据生成任务
+    private final Map<String, ScheduledFuture<?>> deviceTasks;
+    
     public SensorDataGeneratorService(DatabaseManager databaseManager, 
                                     HBaseManager hbaseManager, 
                                     KafkaProducerManager kafkaProducer) {
@@ -37,7 +42,8 @@ public class SensorDataGeneratorService {
         this.kafkaProducer = kafkaProducer;
         this.objectMapper = new ObjectMapper();
         this.random = new Random();
-        this.executorService = Executors.newScheduledThreadPool(5);
+        this.executorService = Executors.newScheduledThreadPool(10);
+        this.deviceTasks = new ConcurrentHashMap<>();
     }
     
     public void startDataGeneration(String deviceId, int state) {
@@ -46,11 +52,14 @@ public class SensorDataGeneratorService {
             startDataGenerationForDevice(deviceId);
         } else {
             logger.info("Device {} is turned OFF. Stopping data generation...", deviceId);
-            // 可以在这里实现停止数据生成的逻辑
+            stopDataGenerationForDevice(deviceId);
         }
     }
     
     private void startDataGenerationForDevice(String deviceId) {
+        // 如果设备已经在运行，先停止
+        stopDataGenerationForDevice(deviceId);
+        
         // 在新线程中执行数据生成
         executorService.submit(() -> {
             try {
@@ -73,15 +82,33 @@ public class SensorDataGeneratorService {
         });
     }
     
+    private void stopDataGenerationForDevice(String deviceId) {
+        ScheduledFuture<?> task = deviceTasks.remove(deviceId);
+        if (task != null) {
+            boolean cancelled = task.cancel(false);
+            if (cancelled) {
+                logger.info("Successfully stopped data generation for device {}", deviceId);
+            } else {
+                logger.warn("Failed to cancel data generation task for device {}", deviceId);
+            }
+        } else {
+            logger.info("No active data generation task found for device {}", deviceId);
+        }
+    }
+    
     private void scheduleDataGeneration(DeviceInfo deviceInfo) {
         // 每10秒生成一次数据
-        executorService.scheduleAtFixedRate(() -> {
+        ScheduledFuture<?> future = executorService.scheduleAtFixedRate(() -> {
             try {
                 generateAndStoreSensorData(deviceInfo);
             } catch (Exception e) {
                 logger.error("Error generating sensor data for device {}", deviceInfo.deviceId, e);
             }
         }, 0, 10, TimeUnit.SECONDS);
+        
+        // 将任务保存到映射中，以便后续可以取消
+        deviceTasks.put(deviceInfo.deviceId, future);
+        logger.info("Scheduled data generation task for device {}", deviceInfo.deviceId);
     }
     
     private void generateAndStoreSensorData(DeviceInfo deviceInfo) {
@@ -149,27 +176,33 @@ public class SensorDataGeneratorService {
                     
                 case "air_component":
                     // 空气成分通常包含多个元素，需要为每个元素生成值
-                    if (deviceTypeNode.has("co2_range")) {
-                        generatedData.put("co2_value", generateValueFromRange(deviceTypeNode.get("co2_range")));
+                    if (templateNode.has("co2")) {
+                        JsonNode co2Node = templateNode.get("co2");
+                        generatedData.put("co2_value", generateValueFromRange(co2Node.get("range")));
                     }
-                    if (deviceTypeNode.has("o2_range")) {
-                        generatedData.put("o2_value", generateValueFromRange(deviceTypeNode.get("o2_range")));
+                    if (templateNode.has("o2")) {
+                        JsonNode o2Node = templateNode.get("o2");
+                        generatedData.put("o2_value", generateValueFromRange(o2Node.get("range")));
                     }
-                    if (deviceTypeNode.has("pm25_range")) {
-                        generatedData.put("pm25_value", generateValueFromRange(deviceTypeNode.get("pm25_range")));
+                    if (templateNode.has("pm25")) {
+                        JsonNode pm25Node = templateNode.get("pm25");
+                        generatedData.put("pm25_value", generateValueFromRange(pm25Node.get("range")));
                     }
                     break;
                     
                 case "soil_npk":
                     // 土壤NPK包含氮磷钾三个元素
-                    if (deviceTypeNode.has("nitrogen_range")) {
-                        generatedData.put("nitrogen_value", generateValueFromRange(deviceTypeNode.get("nitrogen_range")));
+                    if (templateNode.has("nitrogen")) {
+                        JsonNode nitrogenNode = templateNode.get("nitrogen");
+                        generatedData.put("nitrogen_value", generateValueFromRange(nitrogenNode.get("range")));
                     }
-                    if (deviceTypeNode.has("phosphorus_range")) {
-                        generatedData.put("phosphorus_value", generateValueFromRange(deviceTypeNode.get("phosphorus_range")));
+                    if (templateNode.has("phosphorus")) {
+                        JsonNode phosphorusNode = templateNode.get("phosphorus");
+                        generatedData.put("phosphorus_value", generateValueFromRange(phosphorusNode.get("range")));
                     }
-                    if (deviceTypeNode.has("potassium_range")) {
-                        generatedData.put("potassium_value", generateValueFromRange(deviceTypeNode.get("potassium_range")));
+                    if (templateNode.has("potassium")) {
+                        JsonNode potassiumNode = templateNode.get("potassium");
+                        generatedData.put("potassium_value", generateValueFromRange(potassiumNode.get("range")));
                     }
                     break;
                     
@@ -179,17 +212,21 @@ public class SensorDataGeneratorService {
                     
                 case "soil_trace_elements":
                     // 土壤微量元素包含多种元素
-                    if (deviceTypeNode.has("iron_range")) {
-                        generatedData.put("iron_value", generateValueFromRange(deviceTypeNode.get("iron_range")));
+                    if (templateNode.has("iron")) {
+                        JsonNode ironNode = templateNode.get("iron");
+                        generatedData.put("iron_value", generateValueFromRange(ironNode.get("range")));
                     }
-                    if (deviceTypeNode.has("zinc_range")) {
-                        generatedData.put("zinc_value", generateValueFromRange(deviceTypeNode.get("zinc_range")));
+                    if (templateNode.has("zinc")) {
+                        JsonNode zincNode = templateNode.get("zinc");
+                        generatedData.put("zinc_value", generateValueFromRange(zincNode.get("range")));
                     }
-                    if (deviceTypeNode.has("copper_range")) {
-                        generatedData.put("copper_value", generateValueFromRange(deviceTypeNode.get("copper_range")));
+                    if (templateNode.has("copper")) {
+                        JsonNode copperNode = templateNode.get("copper");
+                        generatedData.put("copper_value", generateValueFromRange(copperNode.get("range")));
                     }
-                    if (deviceTypeNode.has("manganese_range")) {
-                        generatedData.put("manganese_value", generateValueFromRange(deviceTypeNode.get("manganese_range")));
+                    if (templateNode.has("manganese")) {
+                        JsonNode manganeseNode = templateNode.get("manganese");
+                        generatedData.put("manganese_value", generateValueFromRange(manganeseNode.get("range")));
                     }
                     break;
                     
@@ -277,25 +314,25 @@ public class SensorDataGeneratorService {
     private DeviceInfo getDeviceInfo(String deviceId) {
         String sql = "SELECT d.device_id, d.device_name, dt.en_name, dt.template " +
                     "FROM device d " +
-                    "JOIN device_template dt ON d.dt_id = dt.dt_id " +
+                    "LEFT JOIN device_template dt ON d.dt_id = dt.dt_id " +
                     "WHERE d.device_id = ?";
         
         try (Connection conn = databaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            stmt.setString(1, deviceId);
+            stmt.setInt(1, Integer.parseInt(deviceId));  // device_id是int类型
             ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
                 DeviceInfo info = new DeviceInfo();
-                info.deviceId = rs.getString("device_id");
+                info.deviceId = String.valueOf(rs.getInt("device_id"));
                 info.deviceName = rs.getString("device_name");
                 info.enName = rs.getString("en_name");
                 info.template = rs.getString("template");
                 return info;
             }
             
-        } catch (SQLException e) {
+        } catch (SQLException | NumberFormatException e) {
             logger.error("Error querying device info for device {}", deviceId, e);
         }
         
@@ -303,6 +340,12 @@ public class SensorDataGeneratorService {
     }
     
     public void shutdown() {
+        // 停止所有设备的数据生成任务
+        logger.info("Stopping all device data generation tasks...");
+        for (String deviceId : deviceTasks.keySet()) {
+            stopDataGenerationForDevice(deviceId);
+        }
+        
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
             try {
@@ -314,6 +357,65 @@ public class SensorDataGeneratorService {
                 Thread.currentThread().interrupt();
             }
             logger.info("Sensor data generator service shut down");
+        }
+    }
+    
+    /**
+     * 获取当前正在运行的设备数量
+     */
+    public int getActiveDeviceCount() {
+        return deviceTasks.size();
+    }
+    
+    /**
+     * 检查特定设备是否正在运行
+     */
+    public boolean isDeviceActive(String deviceId) {
+        ScheduledFuture<?> task = deviceTasks.get(deviceId);
+        return task != null && !task.isCancelled() && !task.isDone();
+    }
+    
+    /**
+     * 系统启动时初始化所有状态为1的设备
+     * 从数据库查询所有state=1的设备，并为它们启动数据生成任务
+     */
+    public void initializeActiveDevices() {
+        logger.info("Initializing active devices from database...");
+        
+        String sql = "SELECT d.device_id, d.device_name, d.state, dt.en_name, dt.template " +
+                    "FROM device d " +
+                    "LEFT JOIN device_template dt ON d.dt_id = dt.dt_id " +
+                    "WHERE d.state = 1";
+        
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            int activeDeviceCount = 0;
+            while (rs.next()) {
+                String deviceId = String.valueOf(rs.getInt("device_id"));
+                String deviceName = rs.getString("device_name");
+                String enName = rs.getString("en_name");
+                String template = rs.getString("template");
+                
+                logger.info("Found active device: ID={}, Name={}, Type={}", deviceId, deviceName, enName);
+                
+                // 创建设备信息对象
+                DeviceInfo deviceInfo = new DeviceInfo();
+                deviceInfo.deviceId = deviceId;
+                deviceInfo.deviceName = deviceName;
+                deviceInfo.enName = enName;
+                deviceInfo.template = template;
+                
+                // 启动数据生成任务
+                scheduleDataGeneration(deviceInfo);
+                activeDeviceCount++;
+            }
+            
+            logger.info("Successfully initialized {} active devices", activeDeviceCount);
+            
+        } catch (SQLException e) {
+            logger.error("Error initializing active devices from database", e);
         }
     }
     
