@@ -124,125 +124,154 @@ public class SensorDataGeneratorService {
     private Map<String, Object> generateCompleteJsonByType(String enName, String template) {
         Map<String, Object> data = new HashMap<>();
         
-        switch (enName.toLowerCase()) {
-            case "temperature":
-                Map<String, Object> temperatureData = new HashMap<>();
-                temperatureData.put("unit", "°C");
-                temperatureData.put("value", Double.parseDouble(String.format("%.1f", -10.0 + random.nextDouble() * 50.0)));
-                temperatureData.put("range", "-10~40");
-                temperatureData.put("accuracy", "±0.1");
-                temperatureData.put("battery_level", 80 + random.nextInt(20));
-                temperatureData.put("signal_strength", -30 - random.nextInt(40));
-                data.put("temperature", temperatureData);
-                break;
-                
-            case "humidity":
-                Map<String, Object> humidityData = new HashMap<>();
-                humidityData.put("unit", "%RH");
-                humidityData.put("value", Double.parseDouble(String.format("%.1f", 30.0 + random.nextDouble() * 40.0)));
-                humidityData.put("range", "0~100");
-                humidityData.put("accuracy", "±2%");
-                humidityData.put("battery_level", 80 + random.nextInt(20));
-                humidityData.put("signal_strength", -30 - random.nextInt(40));
-                data.put("humidity", humidityData);
-                break;
-                
-            case "air_component":
-                Map<String, Object> airData = new HashMap<>();
-                airData.put("co2", Double.parseDouble(String.format("%.0f", 400.0 + random.nextDouble() * 1000.0)));
-                airData.put("co2_unit", "ppm");
-                airData.put("o2", Double.parseDouble(String.format("%.1f", 18.0 + random.nextDouble() * 5.0)));
-                airData.put("o2_unit", "%");
-                airData.put("pm25", Double.parseDouble(String.format("%.0f", random.nextDouble() * 100.0)));
-                airData.put("pm25_unit", "μg/m³");
-                airData.put("accuracy", "±5%");
-                airData.put("battery_level", 80 + random.nextInt(20));
-                airData.put("signal_strength", -30 - random.nextInt(40));
-                data.put("air_component", airData);
-                break;
-                
-            case "soil_npk":
-                Map<String, Object> npkData = new HashMap<>();
-                npkData.put("nitrogen", Double.parseDouble(String.format("%.0f", 50.0 + random.nextDouble() * 200.0)));
-                npkData.put("phosphorus", Double.parseDouble(String.format("%.0f", 20.0 + random.nextDouble() * 100.0)));
-                npkData.put("potassium", Double.parseDouble(String.format("%.0f", 100.0 + random.nextDouble() * 300.0)));
-                npkData.put("unit", "mg/kg");
-                npkData.put("accuracy", "±10%");
-                npkData.put("battery_level", 80 + random.nextInt(20));
-                npkData.put("signal_strength", -30 - random.nextInt(40));
-                data.put("soil_NPK", npkData);
-                break;
-                
-            case "soil_ph":
-                Map<String, Object> phData = new HashMap<>();
-                phData.put("ph", Double.parseDouble(String.format("%.1f", 5.0 + random.nextDouble() * 3.0)));
-                phData.put("unit", "pH");
-                phData.put("range", "5.0~8.0");
-                phData.put("accuracy", "±0.1");
-                phData.put("battery_level", 80 + random.nextInt(20));
-                phData.put("signal_strength", -30 - random.nextInt(40));
-                data.put("soil_PH", phData);
-                break;
-                
-            case "soil_trace_elements":
-                Map<String, Object> traceData = new HashMap<>();
-                traceData.put("iron", Double.parseDouble(String.format("%.1f", 10.0 + random.nextDouble() * 50.0)));
-                traceData.put("zinc", Double.parseDouble(String.format("%.1f", 1.0 + random.nextDouble() * 10.0)));
-                traceData.put("copper", Double.parseDouble(String.format("%.1f", 0.5 + random.nextDouble() * 5.0)));
-                traceData.put("manganese", Double.parseDouble(String.format("%.1f", 5.0 + random.nextDouble() * 20.0)));
-                traceData.put("unit", "mg/kg");
-                traceData.put("accuracy", "±5%");
-                traceData.put("battery_level", 80 + random.nextInt(20));
-                traceData.put("signal_strength", -30 - random.nextInt(40));
-                data.put("soil_trace_elements", traceData);
-                break;
-                
-            case "wind_speed":
-                Map<String, Object> speedData = new HashMap<>();
-                speedData.put("wind_speed", Double.parseDouble(String.format("%.1f", random.nextDouble() * 15.0)));
-                speedData.put("unit", "m/s");
-                speedData.put("range", "0~15");
-                speedData.put("accuracy", "±0.5");
-                speedData.put("battery_level", 80 + random.nextInt(20));
-                speedData.put("signal_strength", -30 - random.nextInt(40));
-                data.put("wind_speed", speedData);
-                break;
-                
-            case "wind_direction":
-                Map<String, Object> directionData = new HashMap<>();
-                directionData.put("direction", Double.parseDouble(String.format("%.0f", random.nextDouble() * 360.0)));
-                directionData.put("unit", "°");
-                directionData.put("range", "0~360");
-                directionData.put("accuracy", "±5°");
-                directionData.put("battery_level", 80 + random.nextInt(20));
-                directionData.put("signal_strength", -30 - random.nextInt(40));
-                data.put("wind_direction", directionData);
-                break;
-                
-            case "light_intensity":
-                Map<String, Object> lightData = new HashMap<>();
-                lightData.put("illuminance", Double.parseDouble(String.format("%.0f", random.nextDouble() * 80000.0)));
-                lightData.put("unit", "lux");
-                lightData.put("range", "0~80000");
-                lightData.put("accuracy", "±10%");
-                lightData.put("battery_level", 80 + random.nextInt(20));
-                lightData.put("signal_strength", -30 - random.nextInt(40));
-                data.put("light_intensity", lightData);
-                break;
-                
-            default:
-                // 默认生成通用数据
-                Map<String, Object> defaultData = new HashMap<>();
-                defaultData.put("value", Double.parseDouble(String.format("%.2f", random.nextDouble() * 100.0)));
-                defaultData.put("unit", "unknown");
-                defaultData.put("status", "active");
-                defaultData.put("battery_level", 80 + random.nextInt(20));
-                defaultData.put("signal_strength", -30 - random.nextInt(40));
-                data.put(enName, defaultData);
-                break;
+        try {
+            // 解析template JSON
+            JsonNode templateNode = objectMapper.readTree(template);
+            
+            // 根据设备类型获取对应的模板节点
+            JsonNode deviceTypeNode = templateNode.get(enName);
+            if (deviceTypeNode == null) {
+                logger.warn("No template found for device type: {}", enName);
+                return data;
+            }
+            
+            Map<String, Object> generatedData = new HashMap<>();
+            
+            // 处理不同类型的传感器数据
+            switch (enName.toLowerCase()) {
+                case "temperature":
+                    generatedData.put("value", generateValueFromRange(deviceTypeNode.get("range")));
+                    break;
+                    
+                case "humidity":
+                    generatedData.put("value", generateValueFromRange(deviceTypeNode.get("range")));
+                    break;
+                    
+                case "air_component":
+                    // 空气成分通常包含多个元素，需要为每个元素生成值
+                    if (deviceTypeNode.has("co2_range")) {
+                        generatedData.put("co2_value", generateValueFromRange(deviceTypeNode.get("co2_range")));
+                    }
+                    if (deviceTypeNode.has("o2_range")) {
+                        generatedData.put("o2_value", generateValueFromRange(deviceTypeNode.get("o2_range")));
+                    }
+                    if (deviceTypeNode.has("pm25_range")) {
+                        generatedData.put("pm25_value", generateValueFromRange(deviceTypeNode.get("pm25_range")));
+                    }
+                    break;
+                    
+                case "soil_npk":
+                    // 土壤NPK包含氮磷钾三个元素
+                    if (deviceTypeNode.has("nitrogen_range")) {
+                        generatedData.put("nitrogen_value", generateValueFromRange(deviceTypeNode.get("nitrogen_range")));
+                    }
+                    if (deviceTypeNode.has("phosphorus_range")) {
+                        generatedData.put("phosphorus_value", generateValueFromRange(deviceTypeNode.get("phosphorus_range")));
+                    }
+                    if (deviceTypeNode.has("potassium_range")) {
+                        generatedData.put("potassium_value", generateValueFromRange(deviceTypeNode.get("potassium_range")));
+                    }
+                    break;
+                    
+                case "soil_ph":
+                    generatedData.put("value", generateValueFromRange(deviceTypeNode.get("range")));
+                    break;
+                    
+                case "soil_trace_elements":
+                    // 土壤微量元素包含多种元素
+                    if (deviceTypeNode.has("iron_range")) {
+                        generatedData.put("iron_value", generateValueFromRange(deviceTypeNode.get("iron_range")));
+                    }
+                    if (deviceTypeNode.has("zinc_range")) {
+                        generatedData.put("zinc_value", generateValueFromRange(deviceTypeNode.get("zinc_range")));
+                    }
+                    if (deviceTypeNode.has("copper_range")) {
+                        generatedData.put("copper_value", generateValueFromRange(deviceTypeNode.get("copper_range")));
+                    }
+                    if (deviceTypeNode.has("manganese_range")) {
+                        generatedData.put("manganese_value", generateValueFromRange(deviceTypeNode.get("manganese_range")));
+                    }
+                    break;
+                    
+                case "wind_speed":
+                    generatedData.put("value", generateValueFromRange(deviceTypeNode.get("range")));
+                    break;
+                    
+                case "wind_direction":
+                    generatedData.put("value", generateValueFromRange(deviceTypeNode.get("range")));
+                    break;
+                    
+                case "light_intensity":
+                    generatedData.put("value", generateValueFromRange(deviceTypeNode.get("range")));
+                    break;
+                    
+                default:
+                    // 默认情况，尝试从range字段生成值
+                    if (deviceTypeNode.has("range")) {
+                        generatedData.put("value", generateValueFromRange(deviceTypeNode.get("range")));
+                    } else {
+                        generatedData.put("value", random.nextDouble() * 100.0);
+                    }
+                    break;
+            }
+            
+            data.put(enName, generatedData);
+            
+        } catch (Exception e) {
+            logger.error("Error parsing template for device type {}: {}", enName, e.getMessage());
+            // 如果解析失败，返回默认数据
+            Map<String, Object> defaultData = new HashMap<>();
+            defaultData.put("value", random.nextDouble() * 100.0);
+            data.put(enName, defaultData);
         }
         
         return data;
+    }
+    
+    /**
+     * 从range字符串中生成随机值
+     * 支持格式：
+     * - "0~100" -> 在0到100之间生成随机值
+     * - "37" -> 固定值37
+     * - "-10~40" -> 在-10到40之间生成随机值
+     */
+    private double generateValueFromRange(JsonNode rangeNode) {
+        if (rangeNode == null || rangeNode.isNull()) {
+            return random.nextDouble() * 100.0;
+        }
+        
+        String range = rangeNode.asText();
+        
+        try {
+            if (range.contains("~")) {
+                // 处理范围格式：min~max
+                String[] parts = range.split("~");
+                if (parts.length == 2) {
+                    double min = Double.parseDouble(parts[0].trim());
+                    double max = Double.parseDouble(parts[1].trim());
+                    
+                    // 生成范围内的随机值
+                    double value = min + random.nextDouble() * (max - min);
+                    
+                    // 根据数值大小决定保留的小数位数
+                    if (max - min > 100) {
+                        return Math.round(value * 10.0) / 10.0; // 保留1位小数
+                    } else if (max - min > 10) {
+                        return Math.round(value * 100.0) / 100.0; // 保留2位小数
+                    } else {
+                        return Math.round(value * 1000.0) / 1000.0; // 保留3位小数
+                    }
+                }
+            } else {
+                // 处理固定值格式
+                return Double.parseDouble(range.trim());
+            }
+        } catch (NumberFormatException e) {
+            logger.warn("Invalid range format: {}, using random value", range);
+        }
+        
+        // 如果解析失败，返回随机值
+        return random.nextDouble() * 100.0;
     }
     
     private DeviceInfo getDeviceInfo(String deviceId) {
