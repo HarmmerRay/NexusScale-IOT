@@ -52,7 +52,7 @@ scrape_configs:
       - targets: ["master:9090"]
   - job_name: 'node_exporter'
     static_configs:
-      - targets: ['slave1:9100','slave2:9100','slave3:9100']
+      - targets: ['master:9100','slave1:9100','slave2:9100','slave3:9100']
 ```
 
 ./prometheus --config.file=prometheus.yml &
@@ -62,6 +62,8 @@ tar -zxvf grafana-enterprise-11.3.3.linux-amd64.tar.gz
 cd grafana-enterprise-11.3.3.linux-amd64
 
 grafana-server web &
+
+配置grafana仪表盘 去社区找
 
 ## hadoop集群各组件启动信息
 四台虚拟机ip地址分别为 192.168.56.10 192.168.56.11 192.168.56.12 192.168.56.13
@@ -113,10 +115,8 @@ jps | grep -E "(HMaster|HRegionServer)"
 pkill -f HMaster
 pkill -f HRegionServer
 
-# 删除HDFS中的整个HBase目录
+# 删除HDFS中的整个HBase目录 # 确认删除成功
 hdfs dfs -rm -r -f /hbase
-
-# 确认删除成功
 hdfs dfs -ls /
 
 # 删除本地HBase临时数据（根据你的HBase配置调整路径）
@@ -140,6 +140,7 @@ hbase shell
 list
 create 'iot_sensor_data','cf1'
 访问hbase: 192.168.56.10:16010
+scan 'iot_sensor_data'
 
 ### 启动Kafka(只在三台slave上，无Kraft)
 ！！！很多问题！！！  
@@ -164,8 +165,7 @@ kafka-topics.sh --list --bootstrap-server slave1:9092,slave2:9092,slave3:9092
 使用beeline -u "jdbc:hive2://localhost:10000" -n root -p 111111
 
 ### 启动Prometheus+Grafana
-
-只在master机器上 ：   
+ 
 1、./node_exporter &  所有机器上执行  进入到node文件夹底下  
 2、./prometheus --config.file=prometheus.yml &  prometheus文件夹里面  只在master机器上
 3、grafana-server web & 进入grafana bin里面  只在master机器上

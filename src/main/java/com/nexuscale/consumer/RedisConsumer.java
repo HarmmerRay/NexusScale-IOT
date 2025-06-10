@@ -77,10 +77,20 @@ public class RedisConsumer implements Runnable {
         try {
             JsonNode jsonNode = objectMapper.readTree(data);
             
+            // 检查是否为数组格式的消息 [className, dataObject]
+            JsonNode messageData = null;
+            if (jsonNode.isArray() && jsonNode.size() >= 2) {
+                // 数组格式，取第二个元素作为实际数据
+                messageData = jsonNode.get(1);
+            } else {
+                // 直接的对象格式
+                messageData = jsonNode;
+            }
+            
             // 检查是否为设备状态消息
-            if (jsonNode.has("deviceId") && jsonNode.has("state")) {
-                String deviceId = jsonNode.get("deviceId").asText();
-                int state = jsonNode.get("state").asInt();
+            if (messageData != null && messageData.has("deviceId") && messageData.has("state")) {
+                String deviceId = messageData.get("deviceId").asText();
+                int state = messageData.get("state").asInt();
                 
                 logger.info("Received device state message: deviceId={}, state={}", deviceId, state);
                 

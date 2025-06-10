@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a47b6785-effb-4215-83dc-7dc2cb378bde" name="Changes" comment="#[2025.4.2] Kafka生产者，发送mqtt数据到Kafka集群中">
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/nexuscale/service/SensorDataGeneratorService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/nexuscale/service/SensorDataGeneratorService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +61,7 @@
     ]
   }
 }</component>
-  <component name="RunManager" selected="Application.HBaseTestProgram">
+  <component name="RunManager" selected="Application.Main">
     <configuration name="HBaseTestProgram" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.nexuscale.test.HBaseTestProgram" />
       <module name="NexusScale-IOT" />
@@ -103,8 +103,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.HBaseTestProgram" />
         <item itemvalue="Application.Main" />
+        <item itemvalue="Application.HBaseTestProgram" />
         <item itemvalue="Application.KafkaProducerExample" />
       </list>
     </recent_temporary>
@@ -132,6 +132,7 @@
       <workItem from="1748682848333" duration="3193000" />
       <workItem from="1748698651194" duration="239000" />
       <workItem from="1748762037064" duration="7000" />
+      <workItem from="1749134795610" duration="6477000" />
     </task>
     <task id="LOCAL-00001" summary="#[2025.4.2] Kafka生产者，发送mqtt数据到Kafka集群中">
       <option name="closed" value="true" />

@@ -15,6 +15,9 @@ public class Main {
     private static ScheduledExecutorService statusScheduler;
     
     public static void main(String[] args) {
+        // Configure Hadoop for Windows environment
+        configureHadoopForWindows();
+        
         logger.info("=== NexusScale IoT Device Data Consumer ===");
         logger.info("Starting application...");
         
@@ -36,6 +39,58 @@ public class Main {
             logger.error("Fatal error occurred", e);
             System.exit(1);
         }
+    }
+    
+    /**
+     * Configure Hadoop settings for Windows environment
+     */
+    private static void configureHadoopForWindows() {
+        // 设置hadoop.home.dir系统属性绕过检查
+        String hadoopHome = System.getenv("HADOOP_HOME");
+        if (hadoopHome == null || hadoopHome.isEmpty()) {
+            // 设置一个虚拟路径，绕过Hadoop的本地文件系统检查
+            System.setProperty("hadoop.home.dir", "C:\\");
+            logger.info("HADOOP_HOME not set, using virtual path to bypass check");
+        } else {
+            System.setProperty("hadoop.home.dir", hadoopHome);
+            logger.info("Using HADOOP_HOME: {}", hadoopHome);
+        }
+        
+        // 禁用Hadoop的本地库加载
+        System.setProperty("java.library.path", "");
+        
+        // 设置Hadoop在Windows上的兼容性属性
+        System.setProperty("hadoop.util.shell.command.timeout", "30000");
+        System.setProperty("io.file.buffer.size", "65536");
+        
+        // 配置远程Hadoop集群连接
+        configureRemoteHadoopCluster();
+    }
+    
+    /**
+     * Configure Hadoop to connect to remote cluster
+     */
+    private static void configureRemoteHadoopCluster() {
+        // 基于您的集群配置设置Hadoop客户端连接参数
+        System.setProperty("fs.defaultFS", "hdfs://192.168.56.10:9000");
+        System.setProperty("yarn.resourcemanager.address", "192.168.56.10:8032");
+        System.setProperty("yarn.resourcemanager.scheduler.address", "192.168.56.10:8030");
+        System.setProperty("yarn.resourcemanager.resource-tracker.address", "192.168.56.10:8031");
+        
+        // HBase远程集群配置
+        System.setProperty("hbase.zookeeper.quorum", "192.168.56.11,192.168.56.12,192.168.56.13");
+        System.setProperty("hbase.zookeeper.property.clientPort", "2181");
+        System.setProperty("hbase.master", "192.168.56.10:16000");
+        System.setProperty("hbase.rootdir", "hdfs://192.168.56.10:9000/hbase");
+        
+        // 禁用本地模式，强制使用分布式模式
+        System.setProperty("hbase.cluster.distributed", "true");
+        
+        logger.info("已配置Hadoop客户端连接到远程集群:");
+        logger.info("  - HDFS NameNode: hdfs://192.168.56.10:9000");
+        logger.info("  - YARN ResourceManager: 192.168.56.10:8032");
+        logger.info("  - HBase ZooKeeper: 192.168.56.11,192.168.56.12,192.168.56.13:2181");
+        logger.info("  - HBase Master: 192.168.56.10:16000");
     }
     
     private static void setupShutdownHook() {
