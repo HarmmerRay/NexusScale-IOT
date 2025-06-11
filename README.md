@@ -66,7 +66,7 @@ grafana-server web &
 配置grafana仪表盘 去社区找
 
 ## hadoop集群各组件启动信息
-四台虚拟机ip地址分别为 192.168.56.10 192.168.56.11 192.168.56.12 192.168.56.13
+四台虚拟机ip地址分别为 master:192.168.56.10 slave1:192.168.56.11 slave2:192.168.56.12 slave3:192.168.56.13
 各组件版本：  
 hadoop-3.1.3  
 zookeeper-3.4.10 √    zookeeper-3.5.6(错错错 大bug! 不知道的异常！)  
@@ -77,6 +77,8 @@ jdk1.8.0_201
 
 ### 启动hadoop
 master单机执行 start-dfs.sh ,start-yarn.sh
+
+验证（脚本编写不用这样验证）：
 访问hadoop: 192.168.56.10:9870
 访问yarn: 192.168.56.10:8088
 
@@ -105,28 +107,18 @@ rmr /latest_producer_id_block
 rmr /log_dir_event_notification
 quit
 
-# 停止HBase集群
-stop-hbase.sh
-
-# 确认所有HBase进程都已停止
-jps | grep -E "(HMaster|HRegionServer)"
-
-# 如果还有进程，强制杀掉
-pkill -f HMaster
-pkill -f HRegionServer
-
 # 删除HDFS中的整个HBase目录 # 确认删除成功
 hdfs dfs -rm -r -f /hbase
 hdfs dfs -ls /
 
-# 删除本地HBase临时数据（根据你的HBase配置调整路径）
+# 删除本地HBase临时数据（根据你的HBase配置调整路径 每个节点执行）
 rm -rf /tmp/hbase-*
 rm -rf /opt/hbase/logs/*
 
 # 删除Kafka数据目录（在每个节点上执行）
 rm -rf /tmp/kafka-logs/*
 
-# 也要删除meta.properties文件
+# 也要删除meta.properties文件（每个节点执行）
 sudo find /tmp -name "meta.properties" -delete
 
 ### 启动hbase(先启动ZK)
@@ -157,13 +149,6 @@ kafka-topics.sh --create --bootstrap-server slave1:9092,slave2:9092,slave3:9092 
 列出topic：
 kafka-topics.sh --list --bootstrap-server slave1:9092,slave2:9092,slave3:9092
 
-### 启动hive(依赖mysql)
-
-配置好后执行此命令初始化一次（只用首次启动时）：schematool -dbType mysql -initSchema
-终端连接：弄好后 hive 即可使用hive-cli连接上hive了  
-服务端启动：hive --service hiveserver2 &  （允许使用jdbc访问hive）  
-使用beeline -u "jdbc:hive2://localhost:10000" -n root -p 111111
-
 ### 启动Prometheus+Grafana
  
 1、./node_exporter &  所有机器上执行  进入到node文件夹底下  
@@ -171,6 +156,15 @@ kafka-topics.sh --list --bootstrap-server slave1:9092,slave2:9092,slave3:9092
 3、grafana-server web & 进入grafana bin里面  只在master机器上
 
 浏览器访问http://192.168.56.10:3000 admin 111111
+
+
+### 启动hive(依赖mysql)
+
+配置好后执行此命令初始化一次（只用首次启动时）：schematool -dbType mysql -initSchema
+终端连接：弄好后 hive 即可使用hive-cli连接上hive了  
+服务端启动：hive --service hiveserver2 &  （允许使用jdbc访问hive）  
+使用beeline -u "jdbc:hive2://localhost:10000" -n root -p 111111
+
 
 ### 启动ElasticSearch+Kibana
 四台机器 cd elastisearch/bin     ./elasticsearch

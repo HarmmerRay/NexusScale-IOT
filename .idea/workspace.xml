@@ -133,6 +133,8 @@
       <workItem from="1748698651194" duration="239000" />
       <workItem from="1748762037064" duration="7000" />
       <workItem from="1749134795610" duration="6477000" />
+      <workItem from="1749626195839" duration="16000" />
+      <workItem from="1749632002575" duration="3151000" />
     </task>
     <task id="LOCAL-00001" summary="#[2025.4.2] Kafka生产者，发送mqtt数据到Kafka集群中">
       <option name="closed" value="true" />
